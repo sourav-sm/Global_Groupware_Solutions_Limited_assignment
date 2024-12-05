@@ -1,14 +1,27 @@
 import React,{useState} from "react";
 import axios from 'axios';
 import { useNavigate } from "react-router-dom";
+import { LuEye,LuEyeOff } from "react-icons/lu";
 
-function LabelInput({label,placeholder,onChange}){
+
+function LabelInput({label,placeholder,onChange,type,showPassword,togglePassword}){
     return(
-        <div>
+        <div className="relative">
             <label className="block mb-2 text-sm text-black font-semibold pt-4">
                 {label}
             </label>
-            <input onChange={onChange} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 block w-full p-2.5" placeholder={placeholder} required/>
+            <div>
+                <input onChange={onChange} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 block w-full p-2.5" 
+                type={type}
+                placeholder={placeholder} 
+                required/>
+                {label==="Password" && (
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer mb-7" onClick={togglePassword}>
+                        {showPassword?<LuEyeOff size={20}/>:<LuEye size={20}/>}
+                    </div>
+                )}
+            </div>
+            
         </div>
     )
 }
@@ -17,7 +30,9 @@ const Login=()=>{
     const [email,setEmail]=useState('');
     const [password,setPassword]=useState('');
     const [error,setError]=useState('');
+    const [showPassword,setshowPassword]=useState(false);
     const navigate=useNavigate();
+    
     
     const handleLogin=async (e)=>{
          e.preventDefault();
@@ -58,10 +73,13 @@ const Login=()=>{
                         <LabelInput label="Email"  type={"email"} value={email} placeholder="Enter email" onChange={(e) => {
                             setEmail(e.target.value);
                         }}/>
-                        
-                        <LabelInput label="Password" type={"password"} placeholder="Enter password" onChange={(e)=>setPassword(e.target.value)}/>
+        
+                        <LabelInput label="Password" type={showPassword?"text":"Password"} placeholder="Enter password" onChange={(e)=>setPassword(e.target.value)}
+                        showPassword={showPassword}
+                        togglePassword={()=>setshowPassword(!showPassword)}    
+                            />
 
-                        <button onClick={handleLogin} type="button" className="mt-8 w-full text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">Login In</button>
+                        <button onClick={handleLogin} type="button" className="mt-8 w-full text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">Login</button>
                         
                         <div className="text-red-600">
                            {error && <p>{error}</p>}

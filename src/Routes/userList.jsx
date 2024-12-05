@@ -3,8 +3,10 @@ import axios from "axios";
 
 const UserList=()=>{
     const [users,setUsers]=useState([]);
+    const [filteredUsers,setFilteredUsers]=useState([]);
     const [page,setPage]=useState(1);
     const [totalpage,setTotalpage]=useState(1);
+    const [searchQuery,setSearchQuery]=useState("");
     const [editingUser,setEditingUser]=useState(null);
     const [successMessage,setSuccessMessage]=useState("");
     const [errMessage,setErrmessage]=useState("");
@@ -18,12 +20,27 @@ const UserList=()=>{
         try{
             const response=await axios.get(`https://reqres.in/api/users?page=${page}`);
             setUsers(response.data.data);
+            setFilteredUsers(response.data.data);
             setTotalpage(response.data.total_pages);
         }catch(error){
             console.error('Error fetching users',error);
         }
     };
     
+    //searching user
+    const handleSearch=(e)=>{
+        const query=e.target.value.toLowerCase();
+        setSearchQuery(query);
+
+        const filtered=users.filter(user=>
+          user.first_name.toLowerCase().includes(query) ||
+          user.last_name.toLowerCase().includes(query)||
+          (user.email && user.email.toLowerCase().includes(query)) 
+        );
+        setFilteredUsers(filtered);
+    }
+
+
     //updating userlist
     const handleUpdate=async(e)=>{
         e.preventDefault();
@@ -75,12 +92,19 @@ const UserList=()=>{
 
     return(
         <div className="max-w-4xl mx-auto p-6 bg-gray-200 shadow-lg rounded-lg">
-            <h1 className="text-3xl font-bold text-center mb-8 text-blue-600">User List</h1>
-             {successMessage && <div className="text-green-500 mb-4">{successMessage}</div>}
-             {errMessage && <div className="text-red-500 mb-4">{errMessage}</div>}
+            <h1 className="text-3xl font-bold text-center mb-8 text-blue-600">Users List</h1>
+             {successMessage && <div className="text-green-500 mb-4 text-lg font-semibold">{successMessage}</div>}
+             {errMessage && <div className="text-red-500 mb-4 text-lg font-semibold">{errMessage}</div>}
             
+            <input
+               type="text" placeholder="Search Users....."
+               value={searchQuery} onChange={handleSearch}
+               className="w-full mb-6 p-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                {users.map(user=>(
+                {filteredUsers.length>0 ?( 
+                    filteredUsers.map(user=>(
                     <div 
                        key={user.id}
                        className="bg-white shadow-sm rounded-lg p-4 flex flex-col items-center transition-transform hover:scale-105"
@@ -100,7 +124,10 @@ const UserList=()=>{
                             </button>
                         </div>
                     </div>        
-                ))}
+                ))
+            ):(
+                <p className="text-center text-gray-500 col-span-full">No Users found</p>
+            )}
             </div>
             <div className="flex justify-between mt-8">
                 <button onClick={prevPage} disabled={page===1} type="button" className={`px-4 py-2 rounded ${page===1 ? 'bg-gray-300 cursor-not-allowed':'bg-blue-600 hover:bg-blue-700 text-white'}`}>Previous</button>
@@ -110,9 +137,8 @@ const UserList=()=>{
             {/* Edit Form */}
             {editingUser &&(
                 <form onSubmit={handleUpdate} className="mt-8 bg-white p-6 rounded-lg shadow-md">
-                    <h2 className="text-2xl font-bold mb-4">Edit User</h2>
-                    <div className="flex justify-around">
-            
+                    <h2 className="text-3xl font-bold mb-4 flex justify-center text-orange-700">Edit User</h2>
+                    <div className="flex flex-wrap justify-center sm:justify-around gap-4">
                        <input 
                           type="text" name="first_name" value={editingUser.first_name}
                           onChange={handleChange} placeholder="First Name" className="bg-gray-50 border border-gray-300 text-gray-900 focus:ring-blue-500 text-sm rounded-lg w-64 p-2.5"
