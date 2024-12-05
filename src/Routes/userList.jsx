@@ -1,4 +1,4 @@
-import React,{useState,useEffect} from "react";
+import React,{useState,useEffect,useRef} from "react";
 import axios from "axios";
 
 const UserList=()=>{
@@ -10,6 +10,8 @@ const UserList=()=>{
     const [editingUser,setEditingUser]=useState(null);
     const [successMessage,setSuccessMessage]=useState("");
     const [errMessage,setErrmessage]=useState("");
+    
+    const editFormRef=useRef(null);
 
     useEffect(()=>{
         fetchUsers(page);
@@ -26,6 +28,14 @@ const UserList=()=>{
             console.error('Error fetching users',error);
         }
     };
+
+    //scroll down to edit form
+    const handleEditClick=(user)=>{
+        setEditingUser(user);
+        setTimeout(() => {
+            editFormRef.current?.scrollIntoView({behavior:"smooth",block:'start'});
+        }, 100);
+    }
     
     //searching user
     const handleSearch=(e)=>{
@@ -47,10 +57,10 @@ const UserList=()=>{
         try{
             await axios.put(`https://reqres.in/api/users/${editingUser.id}`,editingUser);
             //update userlist locally
-            const UpdatedUsers=users.map((user)=>
+            const UpdatedUsers=filteredUsers.map((user)=>
              user.id===editingUser.id?{...user,...editingUser}:user
             );
-            setUsers(UpdatedUsers);
+            setFilteredUsers(UpdatedUsers);
             
             setSuccessMessage("User Updated Successfully");
             setEditingUser(null);//close the form
@@ -67,7 +77,7 @@ const UserList=()=>{
             await axios.delete(`https://reqres.in/api/users/${id}`);
             //update the userlist locally
             const filterUsers=users.filter((user)=>user.id!==id);
-            setUsers(filterUsers);
+            setFilteredUsers(filterUsers);
 
             setSuccessMessage("User Deleted SuccessFully!");
             // fetchUsers(page);//refresh the page (actual api)
@@ -116,7 +126,10 @@ const UserList=()=>{
                          </div>   
 
                         <div className="flex mt-4 space-x-2">
-                            <button onClick={() => setEditingUser(user)} className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded">
+                            <button onClick={() => {
+                               setEditingUser(user);
+                               handleEditClick(user);
+                            }} className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded">
                               Edit
                             </button>
                             <button onClick={() => handleDelete(user.id)} className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded">
@@ -136,7 +149,7 @@ const UserList=()=>{
 
             {/* Edit Form */}
             {editingUser &&(
-                <form onSubmit={handleUpdate} className="mt-8 bg-white p-6 rounded-lg shadow-md">
+                <form ref={editFormRef} onSubmit={handleUpdate} className="mt-8 bg-white p-6 rounded-lg shadow-md">
                     <h2 className="text-3xl font-bold mb-4 flex justify-center text-orange-700">Edit User</h2>
                     <div className="flex flex-wrap justify-center sm:justify-around gap-4">
                        <input 
@@ -163,4 +176,5 @@ const UserList=()=>{
     ) 
     
 }
-export default UserList
+export default UserList;
+
